@@ -11,7 +11,7 @@ import jijmodeling as jm
 import pandas as pd
 from jijzept.response import JijModelingResponse
 from pandas import DataFrame
-
+import datetime
 from minto.consts.default import DEFAULT_RESULT_DIR
 from minto.records.records import (
     Index,
@@ -116,9 +116,12 @@ class Experiment:
         self,
         name: Optional[str] = None,
         savedir: str | pathlib.Path = DEFAULT_RESULT_DIR,
+        version: Optional[int] = None,
     ):
         self.name = name or str(uuid.uuid4())
         self.savedir = pathlib.Path(savedir)
+        self.version = version or 1
+        self.created_at = datetime.datetime.now()
 
         database: DatabaseSchema = {
             "index": SchemaBasedTable(Index.dtypes),
@@ -167,6 +170,8 @@ class Experiment:
             Index(
                 experiment_name=self.name,
                 run_id=run_id,
+                version=self.version,
+                created_at=self.created_at,
                 # TODO: New attribute will be added.
                 # date=datetime.datetime.now()
             )
@@ -293,6 +298,7 @@ class Experiment:
             solver_name=name,
             source=source,
             solver_id=solver_id,
+            version=self.version
         )
         content = SolverContent(solver_id=solver_id, content=solver)
 
@@ -332,7 +338,7 @@ class Experiment:
             experiment_name=self.name,
             run_id=run_id,
             parameter_name=name,
-            parameter_id=parameter_id,
+            parameter_id=parameter_id
         )
         content = ParameterContent(parameter_id=parameter_id, content=parameter)
 
@@ -372,7 +378,7 @@ class Experiment:
             experiment_name=self.name,
             run_id=run_id,
             result_name=name,
-            result_id=result_id,
+            result_id=result_id
         )
         content = ResultContent(result_id=result_id, content=result)
 
@@ -392,16 +398,17 @@ class Experiment:
         for name, result in results.items():
             self.log_result(name, result)
 
-    def save(self) -> None:
+    def save(self) -> None:  #look into this
         """
         Writes out all log data for parameters, solvers, and results. The data
         is saved under "savedir / experiment.name" directory.
         """
+        
         from minto.io.save import save
 
         save(self)
 
-    def plot(self, kind: str = "line", key: Optional[Literal["solver", "parameter", "result"]] = None, **kwargs) -> None:
+    def plot(self, kind: str = "line", key: Optional[Literal["solver", "parameter", "result","version"]] = None, **kwargs) -> None:
         """
         Visualize the logged data from the experiment.
 

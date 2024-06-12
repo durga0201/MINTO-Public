@@ -37,6 +37,8 @@ class Record(BaseModel):
 class Index(Record):
     experiment_name: StrictStr
     run_id: StrictInt
+    version:StrictFloat
+    created_at: datetime.datetime
     # TODO: New attribute will be added.
     # date: datetime.datetime
 
@@ -59,8 +61,7 @@ class ParameterInfo(Record):
     run_id: StrictInt
     parameter_name: StrictStr
     parameter_id: StrictInt
-
-
+    
 class ParameterContent(Record):
     parameter_id: StrictInt
     content: Any
