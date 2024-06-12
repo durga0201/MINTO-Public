@@ -5,7 +5,8 @@ import pathlib
 import types
 import uuid
 from typing import Any, Callable, Literal, Optional, TypedDict
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 import jijmodeling as jm
 import pandas as pd
 from jijzept.response import JijModelingResponse
@@ -399,6 +400,42 @@ class Experiment:
         from minto.io.save import save
 
         save(self)
+
+    def plot(self, kind: str = "line", key: Optional[Literal["solver", "parameter", "result"]] = None, **kwargs) -> None:
+        """
+        Visualize the logged data from the experiment.
+
+        Parameters
+        ----------
+        kind : str, default "line"
+            The kind of plot to generate. Options include "line", "bar", "hist", "box", "scatter", "heatmap".
+        key : {'solver', 'parameter', 'result', None}, optional
+            Specifies which part of the experiment data to plot. If None, plots the merged data.
+        **kwargs : 
+            Additional keyword arguments to pass to the plotting functions.
+        """
+        df = self.table(key=key)
+
+        if kind == "line":
+            sns.lineplot(data=df, **kwargs)
+        elif kind == "bar":
+            sns.barplot(data=df, **kwargs)
+        elif kind == "hist":
+            df.plot(kind="hist", **kwargs)
+        elif kind == "box":
+            sns.boxplot(data=df, **kwargs)
+        elif kind == "scatter":
+            if "x" in kwargs and "y" in kwargs:
+                sns.scatterplot(data=df, **kwargs)
+            else:
+                raise ValueError("Scatter plot requires 'x' and 'y' arguments.")
+        elif kind == "heatmap":
+            sns.heatmap(df.corr(), annot=True, cmap="coolwarm", **kwargs)
+        else:
+            raise ValueError(f"Unsupported plot kind: {kind}")
+
+        plt.title(f"Experiment: {self.name}")
+        plt.show()
 
     def _mkdir(self) -> None:
         for key in ["solver", "parameter", "result"]:
